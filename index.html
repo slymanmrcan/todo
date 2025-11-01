@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Görev Panosu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e2e8f0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #f1f5f9;
+            font-size: 2.5em;
+        }
+
+        .add-section {
+            background: #2d3748;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #475569;
+            border-radius: 8px;
+            background: #1e293b;
+            color: #e2e8f0;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #60a5fa;
+        }
+
+        .priority-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .priority-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #475569;
+            border-radius: 8px;
+            background: #1e293b;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .priority-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .priority-btn.active.low {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .priority-btn.active.medium {
+            background: #f59e0b;
+            border-color: #f59e0b;
+            color: white;
+        }
+
+        .priority-btn.active.high {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 15px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .add-btn:hover {
+            background: #2563eb;
+        }
+
+        .board {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+        }
+
+        .board::-webkit-scrollbar {
+            height: 10px;
+        }
+
+        .board::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+
+        .board::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 10px;
+        }
+
+        .board::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        .column {
+            flex: 1;
+            min-width: 320px;
+            background: #2d3748;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .column-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #475569;
+        }
+
+        .column-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .column-count {
+            background: #475569;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .column.todo {
+            border-top: 4px solid #64748b;
+        }
+
+        .column.in-progress {
+            border-top: 4px solid #f59e0b;
+        }
+
+        .column.done {
+            border-top: 4px solid #10b981;
+        }
+
+        .tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-height: 200px;
+        }
+
+        .task-card {
+            background: #1e293b;
+            padding: 18px;
+            border-radius: 12px;
+            cursor: grab;
+            transition: all 0.3s;
+            border-left: 4px solid;
+        }
+
+        .task-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        .task-card:active {
+            cursor: grabbing;
+        }
+
+        .task-card.low {
+            border-left-color: #10b981;
+        }
+
+        .task-card.medium {
+            border-left-color: #f59e0b;
+        }
+
+        .task-card.high {
+            border-left-color: #ef4444;
+        }
+
+        .task-card.dragging {
+            opacity: 0.5;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .task-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #f1f5f9;
+            flex: 1;
+        }
+
+        .task-info {
+            display: flex;
+            gap: 15px;
+            color: #94a3b8;
+            font-size: 0.85em;
+            margin-bottom: 12px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+
+        .priority-badge.low {
+            background: #10b98133;
+            color: #10b981;
+        }
+
+        .priority-badge.medium {
+            background: #f59e0b33;
+            color: #f59e0b;
+        }
+
+        .priority-badge.high {
+            background: #ef444433;
+            color: #ef4444;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.85em;
+            transition: all 0.3s;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+            font-size: 0.95em;
+        }
+
+        .drag-over {
+            background: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Görev Panosu</h1>
+        
+        <div class="add-section">
+            <div class="form-group">
+                <label>Görev Adı</label>
+                <input type="text" id="todoName" placeholder="Görev adını girin...">
+            </div>
+            
+            <div class="form-group">
+                <label>Süre (dakika)</label>
+                <input type="number" id="todoDuration" placeholder="60" min="1">
+            </div>
+            
+            <div class="form-group">
+                <label>Öncelik</label>
+                <div class="priority-group">
+                    <button class="priority-btn" data-priority="low">Düşük</button>
+                    <button class="priority-btn active" data-priority="medium">Orta</button>
+                    <button class="priority-btn" data-priority="high">Yüksek</button>
+                </div>
+            </div>
+            
+            <button class="add-btn" onclick="addTodo()">➕ Görev Ekle</button>
+        </div>
+        
+        <div class="board">
+            <div class="column todo" data-status="todo">
+                <div class="column-header">
+                    <div class="column-title">
+                        📝 Başlanmadı
+                        <span class="column-count" id="count-todo">0</span>
+                    </div>
+                </div>
+                <div class="tasks" id="tasks-todo"></div>
+            </div>
+            
+            <div class="column in-progress" data-status="in-progress">
+                <div class="column-header">
+                    <div class="column-title">
+                        ⚡ Devam Ediyor
+                        <span class="column-count" id="count-in-progress">0</span>
+                    </div>
+                </div>
+                <div class="tasks" id="tasks-in-progress"></div>
+            </div>
+            
+            <div class="column done" data-status="done">
+                <div class="column-header">
+                    <div class="column-title">
+                        ✅ Bitti
+                        <span class="column-count" id="count-done">0</span>
+                    </div>
+                </div>
+                <div class="tasks" id="tasks-done"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let todos = [];
+        let selectedPriority = 'medium';
+        let draggedElement = null;
+
+        // LocalStorage'dan verileri yükle
+        function loadTodos() {
+            const stored = localStorage.getItem('kanban-todos');
+            if (stored) {
+                todos = JSON.parse(stored);
+                renderAllColumns();
+            }
+        }
+
+        // LocalStorage'a kaydet
+        function saveTodos() {
+            localStorage.setItem('kanban-todos', JSON.stringify(todos));
+        }
+
+        // Öncelik butonları
+        document.querySelectorAll('.priority-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                selectedPriority = this.dataset.priority;
+            });
+        });
+
+        // Görev ekle
+        function addTodo() {
+            const name = document.getElementById('todoName').value.trim();
+            const duration = document.getElementById('todoDuration').value;
+
+            if (!name) {
+                alert('Görev adı giriniz!');
+                return;
+            }
+
+            const todo = {
+                id: Date.now(),
+                name,
+                duration: duration || 60,
+                priority: selectedPriority,
+                status: 'todo',
+                createdAt: new Date().toISOString()
+            };
+
+            todos.push(todo);
+            saveTodos();
+            renderAllColumns();
+
+            // Formu temizle
+            document.getElementById('todoName').value = '';
+            document.getElementById('todoDuration').value = '';
+        }
+
+        // Görev sil
+        function deleteTodo(id) {
+            if (confirm('Bu görevi silmek istediğinize emin misiniz?')) {
+                todos = todos.filter(t => t.id !== id);
+                saveTodos();
+                renderAllColumns();
+            }
+        }
+
+        // Öncelik metni
+        function getPriorityText(priority) {
+            const texts = { low: 'Düşük', medium: 'Orta', high: 'Yüksek' };
+            return texts[priority];
+        }
+
+        // Tek bir kolonu render et
+        function renderColumn(status) {
+            const columnTasks = todos.filter(t => t.status === status);
+            const tasksContainer = document.getElementById(`tasks-${status}`);
+            const countBadge = document.getElementById(`count-${status}`);
+            
+            countBadge.textContent = columnTasks.length;
+
+            if (columnTasks.length === 0) {
+                tasksContainer.innerHTML = '<div class="empty-state">Görev yok</div>';
+                return;
+            }
+
+            // Önceliğe göre sırala
+            const sortedTasks = [...columnTasks].sort((a, b) => {
+                const priority = { high: 3, medium: 2, low: 1 };
+                return priority[b.priority] - priority[a.priority];
+            });
+
+            tasksContainer.innerHTML = sortedTasks.map(todo => `
+                <div class="task-card ${todo.priority}" draggable="true" data-id="${todo.id}">
+                    <div class="task-header">
+                        <div class="task-title">${todo.name}</div>
+                        <span class="priority-badge ${todo.priority}">${getPriorityText(todo.priority)}</span>
+                    </div>
+                    <div class="task-info">
+                        <div class="info-item">⏱️ ${todo.duration} dk</div>
+                    </div>
+                    <div class="task-actions">
+                        <button class="action-btn delete-btn" onclick="deleteTodo(${todo.id})">🗑️ Sil</button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Drag and drop event'lerini ekle
+            setupDragAndDrop();
+        }
+
+        // Tüm kolonları render et
+        function renderAllColumns() {
+            renderColumn('todo');
+            renderColumn('in-progress');
+            renderColumn('done');
+        }
+
+        // Drag and Drop kurulumu
+        function setupDragAndDrop() {
+            const taskCards = document.querySelectorAll('.task-card');
+            const columns = document.querySelectorAll('.tasks');
+
+            taskCards.forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+            });
+
+            columns.forEach(column => {
+                column.addEventListener('dragover', handleDragOver);
+                column.addEventListener('drop', handleDrop);
+                column.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            this.classList.add('drag-over');
+            return false;
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            this.classList.remove('drag-over');
+
+            if (draggedElement) {
+                const taskId = parseInt(draggedElement.dataset.id);
+                const newStatus = this.parentElement.dataset.status;
+                
+                const todo = todos.find(t => t.id === taskId);
+                if (todo) {
+                    todo.status = newStatus;
+                    saveTodos();
+                    renderAllColumns();
+                }
+            }
+
+            return false;
+        }
+
+        // Sayfa yüklendiğinde
+        loadTodos();
+
+        // Enter tuşu ile ekleme
+        document.getElementById('todoName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addTodo();
+        });
+    </script>
+</body>
+</html>
